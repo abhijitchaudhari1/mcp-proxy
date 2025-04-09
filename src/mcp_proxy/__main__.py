@@ -98,6 +98,11 @@ def main() -> None:
         help="Host to expose an SSE server on. Default is 127.0.0.1",
     )
     sse_server_group.add_argument(
+        "--sse-root",
+        default="",
+        help="Root path to expose an SSE server on. Default is /",
+    )
+    sse_server_group.add_argument(
         "--allow-origin",
         nargs="+",
         default=[],
@@ -142,6 +147,7 @@ def main() -> None:
     sse_settings = SseServerSettings(
         bind_host=args.sse_host,
         port=args.sse_port,
+        root=args.sse_root,
         allow_origins=args.allow_origin if len(args.allow_origin) > 0 else None,
     )
     asyncio.run(run_sse_server(stdio_params, sse_settings))

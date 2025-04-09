@@ -23,6 +23,7 @@ class SseServerSettings:
 
     bind_host: str
     port: int
+    root: str
     allow_origins: list[str] | None = None
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
 
@@ -31,10 +32,11 @@ def create_starlette_app(
     mcp_server: Server[object],
     *,
     allow_origins: list[str] | None = None,
+    root: str = "",
     debug: bool = False,
 ) -> Starlette:
     """Create a Starlette application that can server the provied mcp server with SSE."""
-    sse = SseServerTransport("/messages/")
+    sse = SseServerTransport(f"{root}/messages/")
 
     async def handle_sse(request: Request) -> None:
         async with sse.connect_sse(
@@ -63,8 +65,8 @@ def create_starlette_app(
         debug=debug,
         middleware=middleware,
         routes=[
-            Route("/sse", endpoint=handle_sse),
-            Mount("/messages/", app=sse.handle_post_message),
+            Route(f"{root}/sse", endpoint=handle_sse),
+            Mount(f"{root}/messages/", app=sse.handle_post_message),
         ],
     )
 
@@ -87,6 +89,7 @@ async def run_sse_server(
         starlette_app = create_starlette_app(
             mcp_server,
             allow_origins=sse_settings.allow_origins,
+            root=sse_settings.root,
             debug=(sse_settings.log_level == "DEBUG"),
         )
 
